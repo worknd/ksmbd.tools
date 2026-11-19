@@ -15,7 +15,7 @@ jobs:
 
       - name: Download and build ksmbd-tools
         run: |
-          wget https://github.com
+          wget https://github.com/cifsd-team/ksmbd-tools/archive/refs/tags/3.5.7.tar.gz
           tar -xzf ksmbd-tools-3.5.7.tar.gz
           cd ksmbd-tools-3.5.7
           meson setup build --prefix=/usr --sysconfdir=/etc --localstatedir=/var --buildtype=release
