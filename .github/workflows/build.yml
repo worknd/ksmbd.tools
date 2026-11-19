@@ -1,0 +1,45 @@
+name: Build ksmbd-tools 3.5.7 deb
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gcc pkgconf meson ninja-build gawk \
+            libnl-3-dev libnl-genl-3-dev libglib2.0-dev dpkg-dev
+
+      - name: Download and build ksmbd-tools
+        run: |
+          wget https://github.com
+          tar -xzf ksmbd-tools-3.5.7.tar.gz
+          cd ksmbd-tools-3.5.7
+          meson setup build --prefix=/usr --sysconfdir=/etc --localstatedir=/var --buildtype=release
+          ninja -C build
+          DESTDIR=$PWD/pkg ninja -C build install
+
+      - name: Package as .deb
+        run: |
+          cd ksmbd-tools-3.5.7
+          mkdir -p pkg/DEBIAN
+          cat <<EOF > pkg/DEBIAN/control
+          Package: ksmbd-tools
+          Version: 3.5.7-1
+          Section: net
+          Priority: optional
+          Architecture: amd64
+          Depends: libc6, libglib2.0-0t64, libnl-3-200, libnl-genl-3-200
+          Maintainer: Custom Build <builder@localhost>
+          Description: Linux kernel SMB3 server userspace utilities (3.5.7)
+          EOF
+          dpkg-deb --build pkg ../ksmbd-tools_3.5.7-1_amd64.deb
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ksmbd-tools-deb
+          path: ksmbd-tools_3.5.7-1_amd64.deb
